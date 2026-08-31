@@ -260,3 +260,40 @@ const initialNotes = Array.isArray(allNotes[paperId]) ? allNotes[paperId] : [];
     loadNotes();
   });
 </script>
+
+<script>
+  // 图片预览在生产环境也可用；编辑器脚本在没有开发控件时会提前退出。
+  document.querySelectorAll<HTMLElement>('[data-paper-notes]').forEach((root) => {
+    if (root.querySelector('.note-toolbar')) return;
+    const list = root.querySelector<HTMLElement>('.paper-notes-list');
+    const lightbox = root.querySelector<HTMLElement>('.image-lightbox');
+    const preview = root.querySelector<HTMLImageElement>('.image-lightbox-image');
+    const close = root.querySelector<HTMLButtonElement>('.image-lightbox-close');
+    if (!list || !lightbox || !preview || !close) return;
+    let scale = 1, x = 0, y = 0, dragging = false, startX = 0, startY = 0, originX = 0, originY = 0;
+    const transform = () => { preview.style.transform = `translate(${x}px, ${y}px) scale(${scale})`; };
+    const hide = () => { lightbox.hidden = true; lightbox.setAttribute('aria-hidden', 'true'); preview.removeAttribute('src'); };
+    const show = (image: HTMLImageElement) => {
+      preview.src = image.currentSrc || image.src;
+      preview.alt = image.alt || '图片预览';
+      scale = 1; x = 0; y = 0; transform();
+      lightbox.hidden = false; lightbox.setAttribute('aria-hidden', 'false');
+    };
+    list.addEventListener('click', (event) => {
+      const target = event.target;
+      if (target instanceof HTMLImageElement) { event.preventDefault(); show(target); }
+    });
+    close.addEventListener('click', hide);
+    lightbox.addEventListener('click', (event) => { if (event.target === lightbox) hide(); });
+    preview.addEventListener('wheel', (event) => {
+      event.preventDefault(); scale = Math.min(6, Math.max(.25, scale * (event.deltaY < 0 ? 1.1 : .9))); transform();
+    }, { passive: false });
+    preview.addEventListener('pointerdown', (event) => {
+      dragging = true; startX = event.clientX; startY = event.clientY; originX = x; originY = y; preview.setPointerCapture(event.pointerId);
+    });
+    preview.addEventListener('pointermove', (event) => { if (dragging) { x = originX + event.clientX - startX; y = originY + event.clientY - startY; transform(); } });
+    preview.addEventListener('pointerup', () => { dragging = false; });
+    preview.addEventListener('pointercancel', () => { dragging = false; });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && !lightbox.hidden) hide(); });
+  });
+</script>
