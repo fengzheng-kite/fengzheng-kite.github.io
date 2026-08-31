@@ -24,6 +24,7 @@ const { Content, headings } = await render(entry);
     <aside class="prose-aside">
       <strong>相关链接</strong>
       <div><a href={entry.data.paperUrl} target="_blank" rel="noreferrer">arXiv ↗</a></div>
+      {entry.data.pdfUrl && <div><a href={entry.data.pdfUrl} target="_blank" rel="noreferrer">下载 PDF ↗</a></div>}
       {entry.data.codeUrl && <div><a href={entry.data.codeUrl} target="_blank" rel="noreferrer">查看代码 ↗</a></div>}
       <br />
       <strong>目录</strong>

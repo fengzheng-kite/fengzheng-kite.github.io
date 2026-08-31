@@ -27,6 +27,7 @@ const papers = defineCollection({
     paperUrl: z.url().refine((url) => url.startsWith('https://arxiv.org/abs/'), {
       message: 'paperUrl 必须是 arXiv 摘要页链接'
     }),
+    pdfUrl: z.string().optional(),
     codeUrl: z.url().optional(),
     tags: z.array(z.string()).default([]),
     featured: z.boolean().default(false),
