@@ -73,6 +73,7 @@ main { min-height: calc(100vh - 200px); }
 .paper-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--line); }
 .paper-card h3 { font-family: var(--serif); font-size: 16px; line-height: 1.45; font-weight: 500; letter-spacing: 0; margin: 0; }
 .paper-card h3 a:hover { color: var(--accent); }
+.paper-notes-star { display: inline-block; margin-left: 8px; color: var(--accent); font-family: var(--sans); font-size: 13px; vertical-align: .12em; }
 .tag-row { display: flex; flex-wrap: wrap; gap: 7px; }
 .tag-row span { color: var(--muted); border: 1px solid var(--line); padding: 3px 8px; font-size: 11px; border-radius: 2px; }
 .article-list { border-top: 1px solid var(--line); }

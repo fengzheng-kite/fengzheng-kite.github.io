@@ -1,11 +1,14 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import notesData from '../../data/paper-notes.json';
 interface Props { paper: CollectionEntry<'papers'>; }
 const { paper } = Astro.props;
+const notes = notesData as Record<string, string[]>;
+const hasNotes = Array.isArray(notes[paper.id]) && notes[paper.id].some((note) => note.replace(/<[^>]+>/g, '').trim() || /<img\b/i.test(note));
 ---
 
 <article class="paper-card" data-paper-item data-search={`${paper.data.title} ${paper.data.tags.join(' ')}`.toLowerCase()}>
-  <h3><a href={`/papers/${paper.id}`}>{paper.data.title}</a></h3>
+  <h3><a href={`/papers/${paper.id}`}>{paper.data.title}</a>{hasNotes && <span class="paper-notes-star" title="已有阅读笔记" aria-label="已有阅读笔记">★</span>}</h3>
   <div class="tag-row">
     {paper.data.tags.slice(0, 3).map((tag) => <span>{tag}</span>)}
   </div>
