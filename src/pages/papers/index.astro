@@ -3,8 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import PaperCard from '../../components/PaperCard.astro';
 import { getCollection } from 'astro:content';
 const papers = await getCollection('papers');
-const order = { reading: 0, finished: 1, 'to-read': 2 };
-papers.sort((a, b) => order[a.data.status] - order[b.data.status]);
+papers.sort((a, b) => b.data.addedAt.valueOf() - a.data.addedAt.valueOf());
 ---
 <BaseLayout title="论文笔记" description="论文阅读列表与笔记。">
   <header class="page-intro">
