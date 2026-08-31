@@ -3,6 +3,7 @@ title: "Real-Time Execution of Action Chunking Flow Policies"
 authors: ["Kevin Black", "Manuel Y. Galliker", "Sergey Levine"]
 venue: "NeurIPS"
 year: 2025
+addedAt: "2026-08-31T15:43:17+08:00"
 status: "reading"
 progress: 0
 paperUrl: "https://arxiv.org/abs/2506.07339"

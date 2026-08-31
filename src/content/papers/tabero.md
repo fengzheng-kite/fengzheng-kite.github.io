@@ -3,6 +3,7 @@ title: "Tabero: Learning Gentle Manipulation with Closed-Loop Force Feedback fro
 authors: ["Qiwei Wu", "Rui Zhang", "Xin Xiang", "Tao Li", "Weihua Zhang", "Junjie Lai", "Renjing Xu"]
 venue: "ICML"
 year: 2026
+addedAt: "2026-08-31T14:13:40+08:00"
 status: "reading"
 progress: 35
 paperUrl: "https://arxiv.org/abs/2605.27886"

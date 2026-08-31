@@ -3,6 +3,7 @@ title: "Training-Time Action Conditioning for Efficient Real-Time Chunking"
 authors: ["Kevin Black", "Allen Z. Ren", "Michael Equi", "Sergey Levine"]
 venue: "arXiv"
 year: 2025
+addedAt: "2026-08-31T15:49:39+08:00"
 status: "reading"
 progress: 0
 paperUrl: "https://arxiv.org/abs/2512.05964"

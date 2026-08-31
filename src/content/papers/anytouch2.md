@@ -3,6 +3,7 @@ title: "AnyTouch 2: General Optical Tactile Representation Learning for Dynamic 
 authors: ["Ruoxuan Feng", "Yuxuan Zhou", "Siyu Mei", "Dongzhan Zhou", "Pengwei Wang", "Shaowei Cui", "Bin Fang", "Guocai Yao", "Di Hu"]
 venue: "ICLR"
 year: 2026
+addedAt: "2026-08-31T14:13:40+08:00"
 status: "reading"
 progress: 62
 paperUrl: "https://arxiv.org/abs/2602.09617"

@@ -22,6 +22,7 @@ const papers = defineCollection({
     authors: z.array(z.string()),
     venue: z.string(),
     year: z.number(),
+    addedAt: z.coerce.date(),
     status: z.enum(['reading', 'finished', 'to-read']),
     progress: z.number().min(0).max(100).default(0),
     paperUrl: z.url().refine((url) => url.startsWith('https://arxiv.org/abs/'), {
