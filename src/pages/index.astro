@@ -6,7 +6,7 @@ import { getCollection } from 'astro:content';
 
 const papers = (await getCollection('papers'))
   .sort((a, b) => b.data.addedAt.valueOf() - a.data.addedAt.valueOf())
-  .slice(0, 2);
+  .slice(0, 3);
 const articles = (await getCollection('blog')).filter((p) => !p.data.draft).sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf()).slice(0, 3);
 ---
 
