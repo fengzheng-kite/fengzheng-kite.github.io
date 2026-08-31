@@ -118,6 +118,7 @@ main { min-height: calc(100vh - 200px); }
 .saved-note p { margin: 0 0 23px; }
 .saved-note img { display: block; max-width: 100%; height: auto; object-fit: contain; }
 .saved-note img { max-height: 70vh; }
+.saved-note img { cursor: zoom-in; }
 .saved-note:empty::before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
 .note-toolbar { position: fixed; z-index: 20; display: flex; align-items: center; gap: 6px; padding: 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); box-shadow: 0 8px 24px rgb(0 0 0 / 12%); transform: translateX(-50%); }
 .note-toolbar[hidden] { display: none; }
@@ -126,6 +127,11 @@ main { min-height: calc(100vh - 200px); }
 .note-edit-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 12px; color: var(--muted); font-size: 12px; }
 .note-edit-actions[hidden] { display: none; }
 .note-save { padding: 7px 14px; border: 1px solid var(--accent); border-radius: 3px; background: var(--accent); color: var(--surface); font: inherit; font-size: 13px; cursor: pointer; }
+.image-lightbox { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; overflow: hidden; background: rgb(0 0 0 / 82%); cursor: grab; }
+.image-lightbox[hidden] { display: none; }
+.image-lightbox-image { max-width: 90vw; max-height: 90vh; user-select: none; transform-origin: center; cursor: grab; will-change: transform; }
+.image-lightbox-image:active { cursor: grabbing; }
+.image-lightbox-close { position: absolute; top: 18px; right: 24px; z-index: 1; width: 40px; height: 40px; border: 1px solid rgb(255 255 255 / 60%); border-radius: 50%; background: rgb(0 0 0 / 35%); color: white; font-size: 28px; line-height: 1; cursor: pointer; }
 .note-add { display: grid; place-items: center; width: 44px; height: 44px; margin: 22px auto 0; padding: 0 0 3px; border: 1px solid var(--accent); border-radius: 50%; background: var(--surface); color: var(--accent); font-size: 28px; font-weight: 300; line-height: 1; cursor: pointer; box-shadow: 0 2px 8px rgb(0 0 0 / 5%); transition: transform .18s ease, box-shadow .18s ease, background .18s ease; }
 .note-add:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgb(0 0 0 / 12%); background: var(--accent-soft); }
 .prose-aside { border-left: 1px solid var(--line); padding-left: 24px; color: var(--muted); font-size: 12px; }
