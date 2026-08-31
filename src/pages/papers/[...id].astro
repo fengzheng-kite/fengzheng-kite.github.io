@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PaperNotes from '../../components/PaperNotes.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('papers');
+  return entries.map((entry) => ({ params: { id: entry.id }, props: { entry } }));
+}
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+---
+<BaseLayout title={entry.data.title} description={entry.data.description}>
+  <div class="prose-wrap">
+    <article>
+      <header class="prose-header">
+        <div class="eyebrow">{entry.data.venue} · {entry.data.year}</div>
+        <h1>{entry.data.title}</h1>
+        <div class="tag-row">{entry.data.tags.map((tag) => <span>{tag}</span>)}</div>
+      </header>
+      <div class="prose"><Content /></div>
+      <PaperNotes paperId={entry.id} />
+    </article>
+    <aside class="prose-aside">
+      <strong>相关链接</strong>
+      <div><a href={entry.data.paperUrl} target="_blank" rel="noreferrer">arXiv ↗</a></div>
+      {entry.data.codeUrl && <div><a href={entry.data.codeUrl} target="_blank" rel="noreferrer">查看代码 ↗</a></div>}
+      <br />
+      <strong>目录</strong>
+      {headings.filter((h) => h.depth === 2).map((h) => <div><a href={`#${h.slug}`}>{h.text}</a></div>)}
+    </aside>
+  </div>
+</BaseLayout>

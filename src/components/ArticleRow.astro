@@ -1,0 +1,15 @@
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props { article: CollectionEntry<'blog'>; }
+const { article } = Astro.props;
+const date = article.data.publishedAt.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' });
+---
+
+<article class="article-row">
+  <div>
+    <div class="eyebrow">{article.data.tags[0] || '笔记'} · {date}</div>
+    <h3><a href={`/blog/${article.id}`}>{article.data.title}</a></h3>
+    <p>{article.data.description}</p>
+  </div>
+  <a class="arrow-link" href={`/blog/${article.id}`} aria-label={`阅读 ${article.data.title}`}>↗</a>
+</article>

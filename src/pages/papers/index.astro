@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PaperCard from '../../components/PaperCard.astro';
+import { getCollection } from 'astro:content';
+const papers = await getCollection('papers');
+const order = { reading: 0, finished: 1, 'to-read': 2 };
+papers.sort((a, b) => order[a.data.status] - order[b.data.status]);
+---
+<BaseLayout title="论文笔记" description="论文阅读列表与笔记。">
+  <header class="page-intro">
+    <div class="eyebrow">论文</div>
+    <h1>论文笔记</h1>
+  </header>
+  <div class="paper-search">
+    <label for="paper-search" class="sr-only">搜索论文</label>
+    <input id="paper-search" type="search" placeholder="搜索论文或标签" autocomplete="off" />
+  </div>
+  <div class="paper-grid">{papers.map((paper) => <PaperCard paper={paper} />)}</div>
+  <p class="paper-search-empty" hidden>没有找到相关论文。</p>
+
+  <script>
+    const input = document.querySelector<HTMLInputElement>('#paper-search');
+    const items = [...document.querySelectorAll<HTMLElement>('[data-paper-item]')];
+    const empty = document.querySelector<HTMLElement>('.paper-search-empty');
+
+    input?.addEventListener('input', () => {
+      const query = input.value.trim().toLowerCase();
+      let visibleCount = 0;
+
+      items.forEach((item) => {
+        const matches = (item.dataset.search || '').includes(query);
+        item.hidden = !matches;
+        if (matches) visibleCount += 1;
+      });
+
+      if (empty) empty.hidden = visibleCount !== 0;
+    });
+  </script>
+</BaseLayout>

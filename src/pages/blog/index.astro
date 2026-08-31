@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleRow from '../../components/ArticleRow.astro';
+import { getCollection } from 'astro:content';
+const articles = (await getCollection('blog')).filter((p) => !p.data.draft).sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf());
+const canEdit = import.meta.env.DEV;
+---
+<BaseLayout title="文章" description="技术文章与研究笔记。">
+  <header class="page-intro">
+    <div class="eyebrow">文章</div>
+    <h1>技术文章</h1>
+    <p>研究笔记、实现记录与技术总结。</p>
+  </header>
+  <div class="filters"><span class="selected">全部</span><span>具身智能</span><span>触觉感知</span><span>笔记</span></div>
+  <div class="article-list">{articles.map((article) => <ArticleRow article={article} />)}</div>
+  {canEdit && (
+    <>
+      <div class="article-create" hidden>
+        <input class="article-create-title" type="text" placeholder="文章标题" autocomplete="off" />
+        <input class="article-create-description" type="text" placeholder="小字说明" autocomplete="off" />
+        <button class="article-create-save" type="button">保存</button>
+      </div>
+      <button class="note-add article-add" type="button" aria-label="添加文章">+</button>
+    </>
+  )}
+
+  <script>
+    const addButton = document.querySelector<HTMLButtonElement>('.article-add');
+    const form = document.querySelector<HTMLElement>('.article-create');
+    const titleInput = document.querySelector<HTMLInputElement>('.article-create-title');
+    const descriptionInput = document.querySelector<HTMLInputElement>('.article-create-description');
+    const saveButton = document.querySelector<HTMLButtonElement>('.article-create-save');
+
+    const saveArticle = async () => {
+      if (!titleInput?.value.trim() || !descriptionInput || !saveButton) return;
+      saveButton.disabled = true;
+      try {
+        const response = await fetch('/api/articles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: titleInput.value, description: descriptionInput.value })
+        });
+        if (!response.ok) throw new Error('Save failed');
+        window.location.reload();
+      } catch {
+        window.alert('创建失败：请使用 npm run dev 启动网站。');
+        saveButton.disabled = false;
+      }
+    };
+
+    addButton?.addEventListener('click', () => {
+      addButton.hidden = true;
+      if (form) form.hidden = false;
+      titleInput?.focus();
+    });
+    saveButton?.addEventListener('click', saveArticle);
+    descriptionInput?.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') saveArticle();
+    });
+  </script>
+</BaseLayout>

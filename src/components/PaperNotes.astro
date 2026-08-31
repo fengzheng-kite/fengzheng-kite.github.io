@@ -1,0 +1,186 @@
+---
+interface Props { paperId: string; }
+const { paperId } = Astro.props;
+import notesData from '../../data/paper-notes.json';
+
+const canEdit = import.meta.env.DEV;
+const allNotes = notesData as Record<string, string[]>;
+const initialNotes = Array.isArray(allNotes[paperId]) ? allNotes[paperId] : [];
+---
+
+<section class="paper-notes" data-paper-notes data-paper-id={paperId}>
+  <div class="paper-notes-list" aria-live="polite">
+    {initialNotes.map((note) => <div class="saved-note" set:html={note} />)}
+  </div>
+  {canEdit && (
+    <>
+      <div class="note-toolbar" role="toolbar" aria-label="文字格式" hidden>
+        <select class="note-font-size" aria-label="字号">
+          <option value="2">小</option><option value="3" selected>中</option><option value="5">大</option>
+        </select>
+        <button type="button" data-command="bold" aria-label="加粗"><strong>B</strong></button>
+        <button type="button" data-command="underline" aria-label="下划线"><u>U</u></button>
+      </div>
+      <button class="note-add" type="button" aria-label="添加笔记">+</button>
+    </>
+  )}
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-paper-notes]').forEach((root) => {
+    const paperId = root.dataset.paperId;
+    const list = root.querySelector<HTMLElement>('.paper-notes-list');
+    const toolbar = root.querySelector<HTMLElement>('.note-toolbar');
+    const addButton = root.querySelector<HTMLButtonElement>('.note-add');
+    const sizeSelect = root.querySelector<HTMLSelectElement>('.note-font-size');
+    if (!paperId || !list || !toolbar || !addButton || !sizeSelect) return;
+
+    const storageKey = `paper-notes:${paperId}`;
+    const apiUrl = `/api/notes/${encodeURIComponent(paperId)}`;
+    let notes: string[] = [];
+    let activeNote: HTMLElement | null = null;
+    let editingIndex: number | null = null;
+    let savedRange: Range | null = null;
+    let justEnteredEdit = false;
+
+    const hideToolbar = () => { toolbar.hidden = true; savedRange = null; };
+    const placeCaretAtEnd = (element: HTMLElement) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      range.collapse(false);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    };
+
+    const persist = async (nextNotes: string[]) => {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: nextNotes })
+      });
+      if (!response.ok) throw new Error('Save failed');
+    };
+
+    const save = async () => {
+      if (!activeNote?.textContent?.trim()) return;
+      const html = activeNote.innerHTML.trim();
+      const nextNotes = [...notes];
+      if (editingIndex === null) nextNotes.push(html); else nextNotes[editingIndex] = html;
+      try {
+        await persist(nextNotes);
+      } catch {
+        window.alert('保存失败：本地笔记服务未启动。请使用 npm run dev 或 npm start 启动网站。');
+        return;
+      }
+      notes = nextNotes;
+      activeNote.contentEditable = 'false';
+      activeNote.removeAttribute('data-placeholder');
+      activeNote = null;
+      editingIndex = null;
+      addButton.hidden = false;
+      hideToolbar();
+      render();
+    };
+
+    const beginEditing = (note: HTMLElement, index: number | null) => {
+      activeNote?.setAttribute('contenteditable', 'false');
+      activeNote = note;
+      editingIndex = index;
+      note.contentEditable = 'true';
+      addButton.hidden = true;
+      justEnteredEdit = true;
+      note.focus();
+      placeCaretAtEnd(note);
+      hideToolbar();
+    };
+
+    const wireNote = (note: HTMLElement, index: number | null) => {
+      note.addEventListener('dblclick', () => beginEditing(note, index));
+      note.addEventListener('pointerdown', () => { if (note === activeNote) justEnteredEdit = false; });
+      note.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey && note === activeNote) {
+          event.preventDefault();
+          save();
+        }
+      });
+    };
+
+    const render = () => {
+      list.replaceChildren();
+      notes.forEach((html, index) => {
+        const note = document.createElement('div');
+        note.className = 'saved-note';
+        note.title = '双击编辑';
+        note.innerHTML = html;
+        wireNote(note, index);
+        list.appendChild(note);
+      });
+    };
+
+    const showToolbarForSelection = () => {
+      if (!activeNote || justEnteredEdit) return hideToolbar();
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed || !selection.rangeCount) return hideToolbar();
+      const range = selection.getRangeAt(0);
+      if (!activeNote.contains(range.commonAncestorContainer)) return hideToolbar();
+      const rect = range.getBoundingClientRect();
+      if (!rect.width && !rect.height) return hideToolbar();
+      savedRange = range.cloneRange();
+      toolbar.hidden = false;
+      toolbar.style.left = `${Math.max(8, rect.left + rect.width / 2)}px`;
+      toolbar.style.top = `${rect.bottom + 8}px`;
+    };
+
+    addButton.addEventListener('click', () => {
+      const note = document.createElement('div');
+      note.className = 'saved-note';
+      note.dataset.placeholder = '输入内容，回车保存';
+      wireNote(note, null);
+      list.appendChild(note);
+      beginEditing(note, null);
+    });
+    document.addEventListener('selectionchange', showToolbarForSelection);
+
+    const restoreSelection = () => {
+      if (!savedRange) return;
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(savedRange);
+    };
+    root.querySelectorAll<HTMLButtonElement>('[data-command]').forEach((button) => {
+      button.addEventListener('mousedown', (event) => event.preventDefault());
+      button.addEventListener('click', () => {
+        restoreSelection();
+        document.execCommand(button.dataset.command || '');
+        activeNote?.focus();
+        hideToolbar();
+      });
+    });
+    sizeSelect.addEventListener('change', () => {
+      restoreSelection();
+      document.execCommand('fontSize', false, sizeSelect.value);
+      activeNote?.focus();
+      hideToolbar();
+    });
+    const loadNotes = async () => {
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error('Load failed');
+        const data = await response.json();
+        notes = Array.isArray(data.notes) ? data.notes : [];
+
+        const oldNotes = JSON.parse(localStorage.getItem(storageKey) || '[]');
+        if (notes.length === 0 && Array.isArray(oldNotes) && oldNotes.length > 0) {
+          await persist(oldNotes);
+          notes = oldNotes;
+          localStorage.removeItem(storageKey);
+        }
+      } catch {
+        notes = [];
+      }
+      render();
+    };
+    loadNotes();
+  });
+</script>

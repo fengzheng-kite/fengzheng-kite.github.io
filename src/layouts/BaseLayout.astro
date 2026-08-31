@@ -1,0 +1,33 @@
+---
+import Header from '../components/Header.astro';
+import '../styles/global.css';
+import 'katex/dist/katex.min.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Shenrui Liu — 技术博客',
+  description = '技术文章与论文笔记。'
+} = Astro.props;
+const pageTitle = title.startsWith('Shenrui') ? title : `${title} — Shenrui Liu`;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#ffffff" />
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <div class="site-shell">
+      <Header />
+      <main><slot /></main>
+    </div>
+  </body>
+</html>

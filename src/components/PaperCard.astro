@@ -1,0 +1,12 @@
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props { paper: CollectionEntry<'papers'>; }
+const { paper } = Astro.props;
+---
+
+<article class="paper-card" data-paper-item data-search={`${paper.data.title} ${paper.data.tags.join(' ')}`.toLowerCase()}>
+  <h3><a href={`/papers/${paper.id}`}>{paper.data.title}</a></h3>
+  <div class="tag-row">
+    {paper.data.tags.slice(0, 3).map((tag) => <span>{tag}</span>)}
+  </div>
+</article>
