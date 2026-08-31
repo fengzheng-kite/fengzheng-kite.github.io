@@ -96,6 +96,9 @@ const initialNotes = Array.isArray(allNotes[paperId]) ? allNotes[paperId] : [];
     };
 
     const wireNote = (note: HTMLElement, index: number | null) => {
+      note.addEventListener('click', () => {
+        if (note !== activeNote) beginEditing(note, index);
+      });
       note.addEventListener('dblclick', () => beginEditing(note, index));
       note.addEventListener('pointerdown', () => { if (note === activeNote) justEnteredEdit = false; });
       note.addEventListener('keydown', (event) => {
@@ -111,7 +114,7 @@ const initialNotes = Array.isArray(allNotes[paperId]) ? allNotes[paperId] : [];
       notes.forEach((html, index) => {
         const note = document.createElement('div');
         note.className = 'saved-note';
-        note.title = '双击编辑';
+        note.title = '点击编辑';
         note.innerHTML = html;
         wireNote(note, index);
         list.appendChild(note);

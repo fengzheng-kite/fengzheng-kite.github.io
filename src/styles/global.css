@@ -116,6 +116,8 @@ main { min-height: calc(100vh - 200px); }
 .paper-notes-list { display: grid; gap: 23px; }
 .saved-note { min-height: 1em; font-family: var(--serif); font-size: 18px; line-height: 1.65; overflow-wrap: anywhere; cursor: text; outline: none; }
 .saved-note p { margin: 0 0 23px; }
+.saved-note img { display: block; max-width: 100%; height: auto; object-fit: contain; }
+.saved-note img { max-height: 70vh; }
 .saved-note:empty::before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
 .note-toolbar { position: fixed; z-index: 20; display: flex; align-items: center; gap: 6px; padding: 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); box-shadow: 0 8px 24px rgb(0 0 0 / 12%); transform: translateX(-50%); }
 .note-toolbar[hidden] { display: none; }
