@@ -123,6 +123,9 @@ main { min-height: calc(100vh - 200px); }
 .note-toolbar[hidden] { display: none; }
 .note-toolbar button, .note-font-size { height: 30px; min-width: 34px; padding: 0 9px; border: 1px solid var(--line); border-radius: 3px; background: transparent; color: var(--text); font: inherit; font-size: 13px; cursor: pointer; }
 .note-toolbar button:hover, .note-font-size:hover { border-color: var(--accent); }
+.note-edit-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 12px; color: var(--muted); font-size: 12px; }
+.note-edit-actions[hidden] { display: none; }
+.note-save { padding: 7px 14px; border: 1px solid var(--accent); border-radius: 3px; background: var(--accent); color: var(--surface); font: inherit; font-size: 13px; cursor: pointer; }
 .note-add { display: grid; place-items: center; width: 44px; height: 44px; margin: 22px auto 0; padding: 0 0 3px; border: 1px solid var(--accent); border-radius: 50%; background: var(--surface); color: var(--accent); font-size: 28px; font-weight: 300; line-height: 1; cursor: pointer; box-shadow: 0 2px 8px rgb(0 0 0 / 5%); transition: transform .18s ease, box-shadow .18s ease, background .18s ease; }
 .note-add:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgb(0 0 0 / 12%); background: var(--accent-soft); }
 .prose-aside { border-left: 1px solid var(--line); padding-left: 24px; color: var(--muted); font-size: 12px; }

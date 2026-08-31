@@ -21,6 +21,10 @@ const initialNotes = Array.isArray(allNotes[paperId]) ? allNotes[paperId] : [];
         <button type="button" data-command="bold" aria-label="加粗"><strong>B</strong></button>
         <button type="button" data-command="underline" aria-label="下划线"><u>U</u></button>
       </div>
+      <div class="note-edit-actions" hidden>
+        <span>Enter 换行 · Ctrl/⌘ + Enter 保存</span>
+        <button class="note-save" type="button">保存</button>
+      </div>
       <button class="note-add" type="button" aria-label="添加笔记">+</button>
     </>
   )}
@@ -32,8 +36,10 @@ const initialNotes = Array.isArray(allNotes[paperId]) ? allNotes[paperId] : [];
     const list = root.querySelector<HTMLElement>('.paper-notes-list');
     const toolbar = root.querySelector<HTMLElement>('.note-toolbar');
     const addButton = root.querySelector<HTMLButtonElement>('.note-add');
+    const editActions = root.querySelector<HTMLElement>('.note-edit-actions');
+    const saveButton = root.querySelector<HTMLButtonElement>('.note-save');
     const sizeSelect = root.querySelector<HTMLSelectElement>('.note-font-size');
-    if (!paperId || !list || !toolbar || !addButton || !sizeSelect) return;
+    if (!paperId || !list || !toolbar || !addButton || !editActions || !saveButton || !sizeSelect) return;
 
     const storageKey = `paper-notes:${paperId}`;
     const apiUrl = `/api/notes/${encodeURIComponent(paperId)}`;
@@ -63,8 +69,9 @@ const initialNotes = Array.isArray(allNotes[paperId]) ? allNotes[paperId] : [];
     };
 
     const save = async () => {
-      if (!activeNote?.textContent?.trim()) return;
+      if (!activeNote) return;
       const html = activeNote.innerHTML.trim();
+      if (!html) return;
       const nextNotes = [...notes];
       if (editingIndex === null) nextNotes.push(html); else nextNotes[editingIndex] = html;
       try {
@@ -79,6 +86,7 @@ const initialNotes = Array.isArray(allNotes[paperId]) ? allNotes[paperId] : [];
       activeNote = null;
       editingIndex = null;
       addButton.hidden = false;
+      editActions.hidden = true;
       hideToolbar();
       render();
     };
@@ -89,6 +97,7 @@ const initialNotes = Array.isArray(allNotes[paperId]) ? allNotes[paperId] : [];
       editingIndex = index;
       note.contentEditable = 'true';
       addButton.hidden = true;
+      editActions.hidden = false;
       justEnteredEdit = true;
       note.focus();
       placeCaretAtEnd(note);
@@ -102,7 +111,7 @@ const initialNotes = Array.isArray(allNotes[paperId]) ? allNotes[paperId] : [];
       note.addEventListener('dblclick', () => beginEditing(note, index));
       note.addEventListener('pointerdown', () => { if (note === activeNote) justEnteredEdit = false; });
       note.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' && !event.shiftKey && note === activeNote) {
+        if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && note === activeNote) {
           event.preventDefault();
           save();
         }
@@ -138,11 +147,12 @@ const initialNotes = Array.isArray(allNotes[paperId]) ? allNotes[paperId] : [];
     addButton.addEventListener('click', () => {
       const note = document.createElement('div');
       note.className = 'saved-note';
-      note.dataset.placeholder = '输入内容，回车保存';
+      note.dataset.placeholder = '输入内容；Enter 换行，Ctrl/⌘ + Enter 保存';
       wireNote(note, null);
       list.appendChild(note);
       beginEditing(note, null);
     });
+    saveButton.addEventListener('click', save);
     document.addEventListener('selectionchange', showToolbarForSelection);
 
     const restoreSelection = () => {
