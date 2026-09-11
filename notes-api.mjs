@@ -20,6 +20,35 @@ async function writeAllNotes(notes) {
   await rename(temporaryFile, notesFile);
 }
 
+async function updateArticleTitle(articleId, title) {
+  const contentDirectory = path.resolve('src/content/blog');
+  let articleFile;
+  let markdown;
+
+  for (const extension of ['md', 'mdx']) {
+    const candidate = path.join(contentDirectory, `${articleId}.${extension}`);
+    try {
+      markdown = await readFile(candidate, 'utf8');
+      articleFile = candidate;
+      break;
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw error;
+    }
+  }
+
+  if (!articleFile) return false;
+  const frontmatter = markdown.match(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/)?.[0];
+  if (!frontmatter || !/^title:[^\r\n]*$/m.test(frontmatter)) {
+    throw new Error('Article title is missing from frontmatter');
+  }
+
+  const updatedFrontmatter = frontmatter.replace(/^title:[^\r\n]*$/m, `title: ${JSON.stringify(title)}`);
+  const temporaryFile = `${articleFile}.tmp`;
+  await writeFile(temporaryFile, `${updatedFrontmatter}${markdown.slice(frontmatter.length)}`, 'utf8');
+  await rename(temporaryFile, articleFile);
+  return true;
+}
+
 function sendJson(response, status, value) {
   response.statusCode = status;
   response.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -46,6 +75,31 @@ export async function handleNotesApi(request, response) {
     } catch (error) {
       console.error(error);
       sendJson(response, 500, { error: '无法创建文章' });
+    }
+    return true;
+  }
+  if (url.pathname.startsWith('/api/articles/') && request.method === 'PATCH') {
+    const articleId = decodeURIComponent(url.pathname.slice('/api/articles/'.length));
+    if (!/^[a-zA-Z0-9_-]+$/.test(articleId)) {
+      sendJson(response, 400, { error: '文章 ID 无效' });
+      return true;
+    }
+    try {
+      let body = '';
+      for await (const chunk of request) body += chunk;
+      const { title } = JSON.parse(body);
+      if (typeof title !== 'string' || !title.trim()) {
+        sendJson(response, 400, { error: '标题不能为空' });
+        return true;
+      }
+      if (!(await updateArticleTitle(articleId, title.trim()))) {
+        sendJson(response, 404, { error: '文章不存在' });
+        return true;
+      }
+      sendJson(response, 200, { saved: true });
+    } catch (error) {
+      console.error(error);
+      sendJson(response, 500, { error: '无法更新文章标题' });
     }
     return true;
   }

@@ -11,13 +11,18 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content, headings } = await render(entry);
 const date = entry.data.publishedAt.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+const canEdit = import.meta.env.DEV;
 ---
 <BaseLayout title={entry.data.title} description={entry.data.description}>
   <div class="prose-wrap">
     <article>
       <header class="prose-header">
         <div class="eyebrow">{entry.data.tags.join(' · ')} · {date}</div>
-        <h1>{entry.data.title}</h1>
+        <h1
+          class:list={{ 'editable-article-title': canEdit }}
+          data-article-id={canEdit ? entry.id : undefined}
+          title={canEdit ? '双击编辑标题' : undefined}
+        >{entry.data.title}</h1>
         <p class="summary">{entry.data.description}</p>
       </header>
       <div class="prose"><Content /></div>
@@ -28,4 +33,89 @@ const date = entry.data.publishedAt.toLocaleDateString('zh-CN', { year: 'numeric
       {headings.filter((h) => h.depth === 2).map((h) => <div><a href={`#${h.slug}`}>{h.text}</a></div>)}
     </aside>
   </div>
+
+  <script>
+    const title = document.querySelector<HTMLElement>('[data-article-id]');
+    const articleId = title?.dataset.articleId;
+    let originalTitle = '';
+    let editing = false;
+    let saving = false;
+
+    const selectTitle = (element: HTMLElement) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    };
+
+    const beginEditing = () => {
+      if (!title || !articleId || editing) return;
+      originalTitle = title.textContent?.trim() || '';
+      editing = true;
+      title.setAttribute('contenteditable', 'plaintext-only');
+      title.classList.add('is-editing');
+      title.focus();
+      selectTitle(title);
+    };
+
+    const stopEditing = () => {
+      if (!title) return;
+      editing = false;
+      title.removeAttribute('contenteditable');
+      title.classList.remove('is-editing');
+    };
+
+    const cancelEditing = () => {
+      if (!title || !editing) return;
+      title.textContent = originalTitle;
+      stopEditing();
+    };
+
+    const saveTitle = async () => {
+      if (!title || !articleId || !editing || saving) return;
+      const nextTitle = title.textContent?.trim() || '';
+      if (!nextTitle) {
+        window.alert('标题不能为空。');
+        title.focus();
+        return;
+      }
+      if (nextTitle === originalTitle) {
+        stopEditing();
+        return;
+      }
+
+      saving = true;
+      title.classList.add('is-saving');
+      try {
+        const response = await fetch(`/api/articles/${encodeURIComponent(articleId)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: nextTitle })
+        });
+        if (!response.ok) throw new Error('Save failed');
+        originalTitle = nextTitle;
+        stopEditing();
+      } catch {
+        window.alert('标题保存失败：请使用 npm run dev 启动网站。');
+        title.textContent = originalTitle;
+        stopEditing();
+      } finally {
+        saving = false;
+        title.classList.remove('is-saving');
+      }
+    };
+
+    title?.addEventListener('dblclick', beginEditing);
+    title?.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        void saveTitle();
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        cancelEditing();
+      }
+    });
+    title?.addEventListener('blur', () => { void saveTitle(); });
+  </script>
 </BaseLayout>
