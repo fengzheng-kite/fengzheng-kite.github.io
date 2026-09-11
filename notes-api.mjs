@@ -20,7 +20,7 @@ async function writeAllNotes(notes) {
   await rename(temporaryFile, notesFile);
 }
 
-async function updateArticleTitle(articleId, title) {
+async function updateArticleMetadata(articleId, updates) {
   const contentDirectory = path.resolve('src/content/blog');
   let articleFile;
   let markdown;
@@ -38,11 +38,17 @@ async function updateArticleTitle(articleId, title) {
 
   if (!articleFile) return false;
   const frontmatter = markdown.match(/^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/)?.[0];
-  if (!frontmatter || !/^title:[^\r\n]*$/m.test(frontmatter)) {
-    throw new Error('Article title is missing from frontmatter');
-  }
+  if (!frontmatter) throw new Error('Article frontmatter is missing');
 
-  const updatedFrontmatter = frontmatter.replace(/^title:[^\r\n]*$/m, `title: ${JSON.stringify(title)}`);
+  let updatedFrontmatter = frontmatter;
+  if (updates.title !== undefined) {
+    if (!/^title:[^\r\n]*$/m.test(updatedFrontmatter)) throw new Error('Article title is missing from frontmatter');
+    updatedFrontmatter = updatedFrontmatter.replace(/^title:[^\r\n]*$/m, `title: ${JSON.stringify(updates.title)}`);
+  }
+  if (updates.tags !== undefined) {
+    if (!/^tags:[^\r\n]*$/m.test(updatedFrontmatter)) throw new Error('Article tags are missing from frontmatter');
+    updatedFrontmatter = updatedFrontmatter.replace(/^tags:[^\r\n]*$/m, `tags: ${JSON.stringify(updates.tags)}`);
+  }
   const temporaryFile = `${articleFile}.tmp`;
   await writeFile(temporaryFile, `${updatedFrontmatter}${markdown.slice(frontmatter.length)}`, 'utf8');
   await rename(temporaryFile, articleFile);
@@ -87,19 +93,34 @@ export async function handleNotesApi(request, response) {
     try {
       let body = '';
       for await (const chunk of request) body += chunk;
-      const { title } = JSON.parse(body);
-      if (typeof title !== 'string' || !title.trim()) {
-        sendJson(response, 400, { error: '标题不能为空' });
+      const payload = JSON.parse(body);
+      const updates = {};
+      if ('title' in payload) {
+        if (typeof payload.title !== 'string' || !payload.title.trim()) {
+          sendJson(response, 400, { error: '标题不能为空' });
+          return true;
+        }
+        updates.title = payload.title.trim();
+      }
+      if ('tags' in payload) {
+        if (!Array.isArray(payload.tags) || !payload.tags.every((tag) => typeof tag === 'string' && tag.trim())) {
+          sendJson(response, 400, { error: '分类格式无效' });
+          return true;
+        }
+        updates.tags = payload.tags.map((tag) => tag.trim());
+      }
+      if (Object.keys(updates).length === 0) {
+        sendJson(response, 400, { error: '没有需要更新的内容' });
         return true;
       }
-      if (!(await updateArticleTitle(articleId, title.trim()))) {
+      if (!(await updateArticleMetadata(articleId, updates))) {
         sendJson(response, 404, { error: '文章不存在' });
         return true;
       }
       sendJson(response, 200, { saved: true });
     } catch (error) {
       console.error(error);
-      sendJson(response, 500, { error: '无法更新文章标题' });
+      sendJson(response, 500, { error: '无法更新文章信息' });
     }
     return true;
   }

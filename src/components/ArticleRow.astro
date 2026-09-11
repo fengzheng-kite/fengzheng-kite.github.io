@@ -3,13 +3,116 @@ import type { CollectionEntry } from 'astro:content';
 interface Props { article: CollectionEntry<'blog'>; }
 const { article } = Astro.props;
 const date = article.data.publishedAt.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' });
+const canEdit = import.meta.env.DEV;
+const category = article.data.tags[0] || '笔记';
 ---
 
 <article class="article-row">
   <div>
-    <div class="eyebrow">{article.data.tags[0] || '笔记'} · {date}</div>
+    <div class="eyebrow">
+      <span
+        class:list={{ 'editable-article-tag': canEdit }}
+        data-editable-article-tag={canEdit ? '' : undefined}
+        data-article-id={canEdit ? article.id : undefined}
+        data-article-tags={canEdit ? JSON.stringify(article.data.tags) : undefined}
+        title={canEdit ? '双击编辑分类' : undefined}
+      >{category}</span> · {date}
+    </div>
     <h3><a href={`/blog/${article.id}`}>{article.data.title}</a></h3>
     <p>{article.data.description}</p>
   </div>
   <a class="arrow-link" href={`/blog/${article.id}`} aria-label={`阅读 ${article.data.title}`}>↗</a>
 </article>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-editable-article-tag]').forEach((tag) => {
+    if (tag.dataset.editReady === 'true') return;
+    tag.dataset.editReady = 'true';
+    const articleId = tag.dataset.articleId;
+    let originalValue = '';
+    let editing = false;
+    let saving = false;
+
+    const stopEditing = () => {
+      editing = false;
+      tag.removeAttribute('contenteditable');
+      tag.classList.remove('is-editing');
+    };
+
+    const cancelEditing = () => {
+      if (!editing) return;
+      tag.textContent = originalValue;
+      stopEditing();
+    };
+
+    const beginEditing = () => {
+      if (!articleId || editing) return;
+      originalValue = tag.textContent?.trim() || '笔记';
+      editing = true;
+      tag.setAttribute('contenteditable', 'plaintext-only');
+      tag.classList.add('is-editing');
+      tag.focus();
+      const range = document.createRange();
+      range.selectNodeContents(tag);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    };
+
+    const saveTag = async () => {
+      if (!articleId || !editing || saving) return;
+      const nextValue = tag.textContent?.trim() || '';
+      if (!nextValue) {
+        window.alert('分类不能为空。');
+        tag.focus();
+        return;
+      }
+      if (nextValue === originalValue) {
+        stopEditing();
+        return;
+      }
+
+      let currentTags: string[] = [];
+      try {
+        const parsed = JSON.parse(tag.dataset.articleTags || '[]');
+        if (Array.isArray(parsed)) currentTags = parsed;
+      } catch {
+        currentTags = [];
+      }
+      const nextTags = currentTags.length > 0 ? [nextValue, ...currentTags.slice(1)] : [nextValue];
+
+      saving = true;
+      tag.classList.add('is-saving');
+      try {
+        const response = await fetch(`/api/articles/${encodeURIComponent(articleId)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tags: nextTags })
+        });
+        if (!response.ok) throw new Error('Save failed');
+        originalValue = nextValue;
+        tag.dataset.articleTags = JSON.stringify(nextTags);
+        stopEditing();
+      } catch {
+        window.alert('分类保存失败：请使用 npm run dev 启动网站。');
+        tag.textContent = originalValue;
+        stopEditing();
+      } finally {
+        saving = false;
+        tag.classList.remove('is-saving');
+      }
+    };
+
+    tag.addEventListener('dblclick', beginEditing);
+    tag.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        void saveTag();
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        cancelEditing();
+      }
+    });
+    tag.addEventListener('blur', () => { void saveTag(); });
+  });
+</script>

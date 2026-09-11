@@ -80,6 +80,10 @@ main { min-height: calc(100vh - 200px); }
 .article-row { display: grid; grid-template-columns: 1fr auto; gap: 30px; align-items: center; padding: 31px 0; border-bottom: 1px solid var(--line); }
 .article-row h3 { font-family: var(--serif); font-size: 27px; line-height: 1.2; font-weight: 500; letter-spacing: -.02em; margin: 9px 0 8px; }
 .article-row p { margin: 0; color: var(--muted); font-size: 14px; }
+.editable-article-tag { cursor: text; border-radius: 2px; transition: background-color .18s, box-shadow .18s; }
+.editable-article-tag:hover { background: var(--accent-soft); box-shadow: 0 0 0 4px var(--accent-soft); }
+.editable-article-tag.is-editing { background: var(--surface); box-shadow: 0 0 0 1px var(--accent), 0 0 0 5px var(--accent-soft); outline: none; }
+.editable-article-tag.is-saving { opacity: .65; }
 .article-create { margin-top: 28px; }
 .article-create[hidden] { display: none; }
 .article-create input { display: block; width: 100%; padding: 8px 0; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; outline: none; }

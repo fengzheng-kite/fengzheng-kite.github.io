@@ -2,7 +2,7 @@
 title: "从 BF16 到 AdamW：大模型训练显存详解"
 description: "理解模型权重、梯度、优化器状态与 Activation 如何共同决定训练显存。"
 publishedAt: 2026-08-31
-tags: ["LLM", "Training", "Memory"]
+tags: ["模型训练","Training","Memory"]
 featured: true
 draft: false
 ---
