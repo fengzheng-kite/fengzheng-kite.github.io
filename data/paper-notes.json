@@ -4,5 +4,8 @@
   ],
   "training-time-action-conditioning-real-time-chunking": [
     "训练时随机采样 **1–6 步冻结动作前缀（frozen action prefix）**并引入 <strong data-start=\"798\" data-end=\"821\">prefix conditioning</strong>，使策略学习基于已执行动作的跨 Chunk 轨迹续接；"
+  ],
+  "blog-article-1789112623507": [
+    "<p data-start=\"2377\" data-end=\"2415\" class=\"PDq2pG_selectionAnchorContainer\"><strong data-start=\"2377\" data-end=\"2393\">Success Rate</strong><br data-start=\"2393\" data-end=\"2396\">\n74% → 74% → <strong data-start=\"2408\" data-end=\"2415\">78%</strong><span aria-hidden=\"true\" class=\"PDq2pG_selectionAnchor\"></span></p>\n<p data-start=\"2417\" data-end=\"2485\"><strong data-start=\"2417\" data-end=\"2438\">Boundary Jump P95</strong><br data-start=\"2438\" data-end=\"2441\">\nBase → Infra RTC改善 → <strong data-start=\"2462\" data-end=\"2485\">Training RTC ↓50.7%</strong></p>\n<p data-start=\"2487\" data-end=\"2542\"><strong data-start=\"2487\" data-end=\"2511\">Task Completion Time</strong><br data-start=\"2511\" data-end=\"2514\">\n34.57s → 30.87s → <strong data-start=\"2532\" data-end=\"2542\">22.40s</strong></p><p data-start=\"2487\" data-end=\"2542\"><strong data-start=\"2532\" data-end=\"2542\"><br></strong></p><p data-start=\"2487\" data-end=\"2542\"><strong data-start=\"2532\" data-end=\"2542\"></strong></p><p dir=\"auto\" data-pm-slice=\"1 1 []\">Training-time RTC算法在大幅度改善任务连续性的同时，任务完成时间显著缩短&nbsp;</p>"
   ]
 }
